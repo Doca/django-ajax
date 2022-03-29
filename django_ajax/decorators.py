@@ -10,6 +10,10 @@ from django.http import HttpResponseBadRequest
 from django_ajax.shortcuts import render_to_json
 
 
+def is_ajax(request):
+    return request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+
+
 def ajax(function=None, mandatory=True, **ajax_kwargs):
     """
     Decorator who guesses the user response type and translates to a serialized
@@ -58,10 +62,10 @@ def ajax(function=None, mandatory=True, **ajax_kwargs):
     def decorator(func):
         @wraps(func, assigned=WRAPPER_ASSIGNMENTS)
         def inner(request, *args, **kwargs):
-            if mandatory and not request.is_ajax():
+            if mandatory and not is_ajax(request):
                 return HttpResponseBadRequest()
 
-            if request.is_ajax():
+            if is_ajax(request):
                 # return json response
                 try:
                     return render_to_json(func(request, *args, **kwargs), request, **ajax_kwargs)
